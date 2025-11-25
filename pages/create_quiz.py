@@ -1,5 +1,5 @@
 import streamlit as st
-
+from gemini import generate_quiz
 
 def render_create_quiz():
     """Render the Create Quiz page content."""
@@ -7,14 +7,23 @@ def render_create_quiz():
     st.markdown("---")
     st.write("Create custom quizzes to test your knowledge.")
     
-    st.markdown("### Quiz Options")
-    topic = st.text_input("Enter a topic for your quiz:", placeholder="e.g., Python Programming")
-    num_questions = st.slider("Number of questions:", 5, 20, 10)
-    difficulty = st.selectbox("Difficulty level:", ["Easy", "Medium", "Hard"])
-    
-    if st.button("Generate Quiz", type="primary"):
-        if topic:
-            st.info(f"Quiz preview: '{topic}' with {num_questions} {difficulty} questions")
-            st.warning("Quiz generation feature coming soon - AI integration in progress...")
-        else:
-            st.warning("Please enter a topic for your quiz.")
+    if "summary" not in st.session_state:
+        st.info("No summary available. Go to Home and generate a summary from an uploaded PDF first.")
+        return
+
+    st.markdown("---")
+    st.markdown("### Generate Quiz from Uploaded Summary")
+    st.write("A quiz will be generated based on the extracted summary.")
+
+    if st.button("Generate Quiz from Summary"):
+        with st.spinner("Generating quiz from summary..."):
+            quiz_text = generate_quiz(st.session_state["summary"])
+        # Store and display the quiz
+        st.session_state["generated_quiz"] = quiz_text
+        st.success("Quiz generated from summary!")
+
+    # If a quiz was generated earlier in this session, display it
+    if "generated_quiz" in st.session_state:
+        st.markdown("---")
+        st.markdown("### Generated Quiz")
+        st.markdown(st.session_state["generated_quiz"]) 

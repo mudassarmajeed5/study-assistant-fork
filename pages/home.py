@@ -63,7 +63,6 @@ def render_home():
         
     if "summary" in st.session_state:
         st.markdown("---")
-        st.markdown("### Summary")
         st.markdown(st.session_state["summary"])
         
         # Generate PDF for download
