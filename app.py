@@ -6,7 +6,7 @@ st.set_page_config(
     page_icon="📚",
     layout="wide"
 )
-
+hii
 # Define pages in order
 PAGES = ["Home", "Create Quiz", "Flash Cards", "Settings", "About"]
 
