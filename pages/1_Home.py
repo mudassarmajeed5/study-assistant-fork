@@ -3,8 +3,10 @@ import re
 from io import BytesIO
 from PyPDF2 import PdfReader
 import markdown2
-from weasyprint import HTML
+from xhtml2pdf import pisa
 from helpers.gemini import get_summary
+from tempfile import NamedTemporaryFile
+
 
 def extract_text_from_pdf(file):
     pdf_reader = PdfReader(file)
@@ -73,13 +75,13 @@ if "summary" in st.session_state:
     
     # Generate PDF for download
     html_content = markdown2.markdown(st.session_state["summary"])
-    pdf_buffer = BytesIO()
-    HTML(string=html_content).write_pdf(pdf_buffer)
-    pdf_buffer.seek(0)
-    
+    with NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
+        pisa.CreatePDF(html_content, dest=temp_pdf)
+        temp_pdf.seek(0)
+        pdf_data = temp_pdf.read()
     st.download_button(
         label="📄 Download Summary as PDF",
-        data=pdf_buffer,
+        data=pdf_data,
         file_name=f"{file_name}_Summary.pdf",
         mime="application/pdf"
     )
