@@ -16,19 +16,12 @@ if 'loaded' not in st.session_state:
 
 # Load from localStorage only once
 if not st.session_state.loaded:
-    loaded = components.html("""
+    components.html("""
     <script>
-        const apiKey = localStorage.getItem('api_key') || '';
-        const mode = localStorage.getItem('mode') || 'Gemini';
-        const data = {api_key: apiKey, mode: mode};
-        window.parent.postMessage({type: 'streamlit:setComponentValue', data: data}, '*');
+        // This script could be used to sync localStorage, but cannot pass values to directly.
     </script>
     """, height=0)
-    
-    if loaded:
-        st.session_state.api_key = loaded.get('api_key', '')
-        st.session_state.mode = loaded.get('mode', 'Gemini')
-        st.session_state.loaded = True
+    st.session_state.loaded = True
 
 # Choose mode
 mode = st.radio("Choose:", ["Gemini", "Ollama"], 
