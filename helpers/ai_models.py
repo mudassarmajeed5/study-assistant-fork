@@ -1,7 +1,7 @@
 from google import genai
 from dotenv import load_dotenv
 import os
-
+from streamlit_javascript import st_javascript
 
 load_dotenv()
 

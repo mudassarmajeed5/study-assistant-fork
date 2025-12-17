@@ -4,7 +4,7 @@ from io import BytesIO
 from PyPDF2 import PdfReader
 import markdown2
 from xhtml2pdf import pisa
-from helpers.gemini import get_summary
+from helpers.ai_models import get_summary
 from tempfile import NamedTemporaryFile
 
 

@@ -1,8 +1,8 @@
 import json
 import streamlit as st
-from helpers.gemini import generate_quiz
+from helpers.ai_models import generate_quiz
 import pandas as pd
-from helpers.gemini import generate_flashcards
+from helpers.ai_models import generate_flashcards
 # Configure page
 st.set_page_config(page_title="Create Quiz - AI Study Assistant", page_icon="📝")
 
