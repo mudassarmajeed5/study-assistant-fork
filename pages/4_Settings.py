@@ -1,66 +1,49 @@
 import streamlit as st
-import streamlit.components.v1 as components
-import requests
+import sqlite3
+from pathlib import Path
 
 st.set_page_config(page_title="Settings", page_icon="⚙️")
 
 st.title("⚙️ Settings")
 
-# Initialize session state
+# Initialize database
+DB_PATH = Path("data/settings.db")
+DB_PATH.parent.mkdir(exist_ok=True)
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS config (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def get_api_key():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.execute("SELECT value FROM config WHERE key = 'api_key'")
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else ""
+
+def save_api_key(key):
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("INSERT OR REPLACE INTO config (key, value) VALUES ('api_key', ?)", (key,))
+    conn.commit()
+    conn.close()
+
+init_db()
+
+# Load API key from database
 if 'api_key' not in st.session_state:
-    st.session_state.api_key = ""
-if 'mode' not in st.session_state:
-    st.session_state.mode = "Gemini"
-if 'loaded' not in st.session_state:
-    st.session_state.loaded = False
+    st.session_state.api_key = get_api_key()
 
-# Load from localStorage only once
-if not st.session_state.loaded:
-    components.html("""
-    <script>
-        // This script could be used to sync localStorage, but cannot pass values to directly.
-    </script>
-    """, height=0)
-    st.session_state.loaded = True
+# UI
+api_key = st.text_input("API Key:", type="password", value=st.session_state.api_key)
 
-# Choose mode
-mode = st.radio("Choose:", ["Gemini", "Ollama"], 
-                index=0 if st.session_state.mode == "Gemini" else 1)
-
-# Gemini settings
-if mode == "Gemini":
-    api_key = st.text_input("API Key:", type="password", value=st.session_state.api_key)
-    
-    if st.button("Save"):
-        st.session_state.api_key = api_key
-        st.session_state.mode = "Gemini"
-        
-        # Save to localStorage
-        components.html(f"""
-        <script>
-            localStorage.setItem('api_key', `{api_key}`);
-            localStorage.setItem('mode', 'Gemini');
-        </script>
-        """, height=0)
-        st.success("Saved!")
-
-# Ollama settings
-else:
-    st.session_state.mode = "Ollama"
-    components.html("""
-    <script>
-        localStorage.setItem('mode', 'Ollama');
-    </script>
-    """, height=0)
-    
-    try:
-        response = requests.get("http://localhost:11434/api/tags", timeout=2)
-        models = [m["name"] for m in response.json()["models"]]
-        
-        if models:
-            model = st.selectbox("Model:", models)
-            st.info(f"Using: {model}")
-        else:
-            st.warning("No models found")
-    except:
-        st.error("Ollama not running")
+if st.button("Save"):
+    save_api_key(api_key)
+    st.session_state.api_key = api_key
+    st.success("✅ API Key saved!")

@@ -1,5 +1,4 @@
 import streamlit as st
-
 # Configure the main page
 st.set_page_config(
     page_title="AI Study Assistant",
