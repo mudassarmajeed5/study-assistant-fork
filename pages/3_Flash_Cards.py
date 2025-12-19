@@ -9,20 +9,20 @@ st.title("🃏 Flash Cards")
 st.markdown("---")
 st.write("Create and review flash cards for effective memorization.")
 
-# Check if extracted text is available
-if "extracted_text" not in st.session_state:
-    st.info("No content available. Go to Home and generate a summary from an uploaded PDF first.")
+# Check if selected summary is available
+if "selected_summary" not in st.session_state:
+    st.info("No summary available. Go to Home and select a summary from the list.")
 else:
     st.markdown("---")
-    st.markdown("### Generate Flash Cards from Uploaded Content")
-    st.write("Flash cards will be generated based on the extracted content.")
+    st.markdown("### Generate Flash Cards from Summary")
+    st.write("Flash cards will be generated based on the selected summary.")
 
     if st.button("Generate Flash Cards", type="primary"):
-        with st.spinner("Generating flash cards from your content..."):
-            flashcards_text = generate_flashcards(st.session_state["extracted_text"])
+        with st.spinner("Generating flash cards..."):
+            flashcards_text = generate_flashcards(st.session_state["selected_summary"])
         # Store the flash cards
         st.session_state["generated_flashcards"] = flashcards_text
-        st.success("Flash cards generated from your content!")
+        st.success("Flash cards generated!")
 
     # Initialize session state for flashcard navigation
     if "current_flashcard_index" not in st.session_state:

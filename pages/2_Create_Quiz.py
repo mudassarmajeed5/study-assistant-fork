@@ -8,18 +8,21 @@ st.set_page_config(page_title="Create Quiz - AI Study Assistant", page_icon="�
 
 st.title("📝 Create Quiz")
 st.markdown("---")
-st.write("Create custom quizzes to test your knowledge.")
 
-if "summary" not in st.session_state:
-    st.info("No summary available. Go to Home and generate a summary from an uploaded PDF first.")
+if "selected_summary" not in st.session_state:
+    st.info("No summary available. Go to Home and select a summary from the list.")
 else:
+    st.success(f"📖 Currently viewing: {st.session_state.get('selected_summary_title', 'Summary')}")
     st.markdown("---")
-    st.markdown("### Generate Quiz from Uploaded Summary")
-    st.write("A quiz will be generated based on the extracted summary.")
+    st.write("Create custom quizzes to test your knowledge.")
+    
+    st.markdown("---")
+    st.markdown("### Generate Quiz from Summary")
+    st.write("A quiz will be generated based on the selected summary.")
 
     if st.button("Create QUIZ"):
-        with st.spinner("Generating quiz from your slides..."):
-            quiz_text = generate_quiz(st.session_state["extracted_text"])
+        with st.spinner("Generating quiz from your summary..."):
+            quiz_text = generate_quiz(st.session_state["selected_summary"])
         # Store and display the quiz
         st.session_state["generated_quiz"] = quiz_text
         st.success("Quiz generated from your content!")

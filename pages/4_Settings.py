@@ -7,7 +7,7 @@ st.set_page_config(page_title="Settings", page_icon="⚙️")
 st.title("⚙️ Settings")
 
 # Initialize database
-DB_PATH = Path("data/settings.db")
+DB_PATH = Path("database/settings.db")
 DB_PATH.parent.mkdir(exist_ok=True)
 
 def init_db():

@@ -1,13 +1,8 @@
 from google import genai
-from dotenv import load_dotenv
 import os
-from streamlit_javascript import st_javascript
-
-load_dotenv()
-
 
 api_key = os.getenv("SECRET_SECRET_KEY")
-client = genai.Client(api_key=api_key)
+client = genai.Client(api_key="AIzaSyDxz4t7VoHs_ctcsDJX8Th4c7QM00R38qY")
 
 def get_summary(text_extracted):
     response = client.models.generate_content(
@@ -25,11 +20,7 @@ def get_summary(text_extracted):
         
         Text to summarize:
 
-{text_extracted}""",
-    )
-
-
-    print(response.text)
+    {text_extracted}""",)
     return response.text
 
 

@@ -1,5 +1,8 @@
 import streamlit as st
-# Configure the main page
+from helpers.db import get_all_summaries, get_summary_by_id, init_db
+
+init_db()
+
 st.set_page_config(
     page_title="AI Study Assistant",
     page_icon="📚",
@@ -7,43 +10,19 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Main page content
 st.title("🎓 AI Study Assistant")
 st.markdown("---")
+st.markdown("### 📚 Select a Summary")
 
-st.markdown("""
-Welcome to your AI-powered study companion! This application helps you enhance your learning experience with intelligent tools.
-
-## Features
-
-### 🏠 Home
-Upload PDF files and generate AI-powered summaries from your study materials.
-
-### 📝 Create Quiz
-Generate custom quizzes from your study materials using AI to test your knowledge and understanding.
-
-### 🃏 Flash Cards
-Create interactive flashcards for efficient memorization and spaced repetition learning.
-
-### ⚙️ Settings
-Customize your study experience with personalized preferences and configurations.
-
-### ℹ️ About
-Learn more about the AI Study Assistant and its capabilities.
-
----
-
-**Get started by selecting "Home" from the sidebar to upload your study materials!**
-""")
-
-# Add some styling and footer
-st.markdown("---")
-st.markdown(
-    """
-    <div style='text-align: center; color: #666; padding: 20px;'>
-        <p>AI Study Assistant v1.0.0</p>
-        <p>Enhance your learning with artificial intelligence</p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+summaries = get_all_summaries()
+if summaries:
+    summary_dict = {title: sid for sid, title in summaries}
+    selected_title = st.selectbox("Choose a lecture/slide:", list(summary_dict.keys()))
+    
+    summary_id = summary_dict[selected_title]
+    content = get_summary_by_id(summary_id)
+    st.session_state["selected_summary"] = content
+    st.session_state["selected_summary_title"] = selected_title
+    st.success(f"✅ Selected: {selected_title}")
+else:
+    st.info("No saved summaries yet. Go to Home and create one!")

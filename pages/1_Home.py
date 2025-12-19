@@ -1,11 +1,12 @@
 import streamlit as st
 import re
-from io import BytesIO
 from PyPDF2 import PdfReader
 import markdown2
-from xhtml2pdf import pisa
+from weasyprint import HTML
 from helpers.ai_models import get_summary
-from tempfile import NamedTemporaryFile
+from helpers.db import save_summary, init_db
+
+init_db()
 
 
 def extract_text_from_pdf(file):
@@ -20,9 +21,8 @@ def extract_text_from_pdf(file):
 # Configure page
 st.set_page_config(page_title="Home - AI Study Assistant", page_icon="🏠")
 
-# Main content
 st.title("🏠 Upload PDF/PPTX")
-st.subheader("Upload your study materials to get started")
+st.subheader("Upload your study materials")
 
 uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
 file_name = uploaded_file.name if uploaded_file else "No file uploaded"
@@ -41,7 +41,7 @@ else:
         st.success("Text extraction complete!")
 
     st.markdown("---")
-    st.info("PDF uploaded and text extracted. Click the button below to generate a summary.")
+    st.info("Click the button below to generate a summary.")
 
     if st.button("Generate Summary"):
         text_to_summarize = st.session_state.get("extracted_text", "")
@@ -66,22 +66,45 @@ else:
                 cleaned_summary = summary
                 
             st.session_state["summary"] = cleaned_summary
+            save_summary(file_name, cleaned_summary)
             st.markdown(cleaned_summary)
+
+# Display selected summary if available
+if "selected_summary" in st.session_state:
+    st.markdown("---")
+    st.success(f"📖 Currently viewing: {st.session_state.get('selected_summary_title', 'Summary')}")
+    st.markdown("---")
+    st.markdown("### 📄 Summary")
+    st.markdown(st.session_state["selected_summary"])
+    
+    # Generate PDF for download
+    html_content = markdown2.markdown(st.session_state["selected_summary"])
+    pdf_bytes = HTML(string=html_content).write_pdf()
+    if pdf_bytes is not None: 
+        st.download_button(
+            label="📄 Download Summary as PDF",
+            data=pdf_bytes,
+            file_name=f"{st.session_state.get('selected_summary_title', 'Summary')}.pdf",
+            mime="application/pdf"
+        )
+else:
+    st.markdown("---")
+    st.info("Select a summary from the main page first.")
 
 if "summary" in st.session_state:
     st.markdown("---")
-    st.markdown("### Current Summary")
+    st.markdown("### Newly Generated Summary")
     st.markdown(st.session_state["summary"])
     
     # Generate PDF for download
     html_content = markdown2.markdown(st.session_state["summary"])
-    with NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
-        pisa.CreatePDF(html_content, dest=temp_pdf)
-        temp_pdf.seek(0)
-        pdf_data = temp_pdf.read()
-    st.download_button(
-        label="📄 Download Summary as PDF",
-        data=pdf_data,
-        file_name=f"{file_name}_Summary.pdf",
-        mime="application/pdf"
-    )
+    pdf_bytes = HTML(string=html_content).write_pdf()
+    if pdf_bytes is not None: 
+        st.download_button(
+            label="📄 Download Summary as PDF",
+            data=pdf_bytes,
+            file_name=f"{file_name}_Summary.pdf",
+            mime="application/pdf"
+        )
+    else: 
+        st.write("Failed to generate a downloadable PDF.")
