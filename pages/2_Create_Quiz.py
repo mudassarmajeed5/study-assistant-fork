@@ -4,14 +4,16 @@ from helpers.ai_models import generate_quiz
 import pandas as pd
 from helpers.ai_models import generate_flashcards
 from helpers.concept_extractor import ConceptExtractor
+from helpers.difficulty_planner import DifficultyPlanner
 # Configure page
 st.set_page_config(page_title="Create Quiz - AI Study Assistant", page_icon="📝")
 
 st.title("📝 Create Quiz")
 st.markdown("---")
 
-# Initialize concept extractor for DFS analysis
+# Initialize concept extractor for DFS analysis and difficulty planner for BFS
 extractor = ConceptExtractor()
+difficulty_planner = DifficultyPlanner()
 
 if "selected_summary" not in st.session_state:
     st.info("No summary available. Go to Home and select a summary from the list.")
@@ -59,6 +61,41 @@ else:
         if topic['subtopics']:
             for sub in topic['subtopics']:
                 st.write(f"   └─ {sub}")
+    
+    # K-Means Clustering Analysis
+    st.markdown("---")
+    st.markdown("### 📊 Topics Grouped by Similarity (K-Means)")
+    
+    clustered_topics = difficulty_planner.get_topic_clusters_by_difficulty(topics)
+    
+    tab1, tab2, tab3 = st.tabs(["🟢 Cluster 1 (Easy)", "🟡 Cluster 2 (Medium)", "🔴 Cluster 3 (Hard)"])
+    
+    with tab1:
+        if clustered_topics["Easy"]:
+            for topic in clustered_topics["Easy"]:
+                st.write(f"✓ {topic}")
+        else:
+            st.info("No topics in this cluster")
+    
+    with tab2:
+        if clustered_topics["Medium"]:
+            for topic in clustered_topics["Medium"]:
+                st.write(f"✓ {topic}")
+        else:
+            st.info("No topics in this cluster")
+    
+    with tab3:
+        if clustered_topics["Hard"]:
+            for topic in clustered_topics["Hard"]:
+                st.write(f"✓ {topic}")
+        else:
+            st.info("No topics in this cluster")
+    
+    st.markdown("---")
+    progressive_sequence = difficulty_planner.get_progressive_quiz_sequence(topics)
+    st.write("**Recommended Quiz Order:**")
+    for idx, topic in enumerate(progressive_sequence, 1):
+        st.write(f"{idx}. {topic}")
     
     st.markdown("---")
     st.markdown("### Generate Quiz from Summary")
