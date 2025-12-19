@@ -4,7 +4,6 @@ from helpers.ai_models import generate_quiz
 import pandas as pd
 from helpers.ai_models import generate_flashcards
 from helpers.concept_extractor import ConceptExtractor
-from helpers.quiz_recommender import QuizRecommender
 # Configure page
 st.set_page_config(page_title="Create Quiz - AI Study Assistant", page_icon="📝")
 
@@ -155,29 +154,12 @@ else:
                         st.session_state.show_explanation = False
                         st.rerun()
                 
-                # Next button with A* recommendation
+                # Next button
                 if current_idx < total_questions - 1:
                     # Only show next button if answer is submitted
                     if st.session_state.answer_submitted:
                         if nav_col3.button("Next →"):
-                            # Initialize recommender for A* algorithm
-                            recommender = QuizRecommender(quiz_data)
-                            
-                            # Convert answers to performance history (1.0 = correct, 0.0 = incorrect)
-                            performance_history = {}
-                            for q_idx, answer in st.session_state.user_answers.items():
-                                is_correct = (answer == quiz_data[q_idx]['correct_option']) if q_idx < len(quiz_data) else False
-                                performance_history[q_idx] = 1.0 if is_correct else 0.0
-                            
-                            # Get A* recommended next question
-                            answered_set = set(st.session_state.user_answers.keys())
-                            next_idx = recommender.a_star_next_question(
-                                current_idx,
-                                performance_history,
-                                answered_set
-                            )
-                            
-                            st.session_state.current_question_index = next_idx
+                            st.session_state.current_question_index += 1
                             st.session_state.answer_submitted = False
                             st.session_state.show_explanation = False
                             st.rerun()
@@ -198,33 +180,6 @@ else:
                         st.bar_chart(df)
                     else:
                         st.info("No answers to chart yet.")
-                    
-                    # Show performance analysis using A*
-                    st.markdown("---")
-                    st.markdown("### 📊 Performance Analysis (A* Optimized)")
-                    
-                    recommender = QuizRecommender(quiz_data)
-                    
-                    # Convert to performance history
-                    performance_history = {}
-                    for q_idx, answer in st.session_state.user_answers.items():
-                        is_correct = (answer == quiz_data[q_idx]['correct_option']) if q_idx < len(quiz_data) else False
-                        performance_history[q_idx] = 1.0 if is_correct else 0.0
-                    
-                    # Get performance summary
-                    perf_summary = recommender.get_performance_summary(performance_history)
-                    
-                    if perf_summary:
-                        st.write("**Performance by Topic:**")
-                        summary_df = pd.DataFrame(perf_summary).T
-                        st.dataframe(summary_df, use_container_width=True)
-                        
-                        # Get review recommendations
-                        review_topics = recommender.recommend_review_topics(performance_history)
-                        if review_topics:
-                            st.markdown("### 🔄 Recommended Topics to Review")
-                            for idx, topic in enumerate(review_topics, 1):
-                                st.write(f"{idx}. **{topic}**")
                     
                     # Reset quiz button
                     if st.button("Start Over"):

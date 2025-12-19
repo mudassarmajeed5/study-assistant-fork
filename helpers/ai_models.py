@@ -1,5 +1,4 @@
 from google import genai
-import os
 import sqlite3
 from pathlib import Path
 DB_PATH = Path("database/settings.db")
