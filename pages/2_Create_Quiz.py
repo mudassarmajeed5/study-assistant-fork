@@ -3,11 +3,16 @@ import streamlit as st
 from helpers.ai_models import generate_quiz
 import pandas as pd
 from helpers.ai_models import generate_flashcards
+from helpers.concept_extractor import ConceptExtractor
+from helpers.quiz_recommender import QuizRecommender
 # Configure page
 st.set_page_config(page_title="Create Quiz - AI Study Assistant", page_icon="📝")
 
 st.title("📝 Create Quiz")
 st.markdown("---")
+
+# Initialize concept extractor for DFS analysis
+extractor = ConceptExtractor()
 
 if "selected_summary" not in st.session_state:
     st.info("No summary available. Go to Home and select a summary from the list.")
@@ -15,6 +20,46 @@ else:
     st.success(f"📖 Currently viewing: {st.session_state.get('selected_summary_title', 'Summary')}")
     st.markdown("---")
     st.write("Create custom quizzes to test your knowledge.")
+    
+    # DFS Analysis of Summary Structure
+    st.markdown("---")
+    st.markdown("### 🧠 Summary Structure Analysis (DFS)")
+    
+    # Extract concepts using DFS
+    topics = extractor.build_quiz_topics(st.session_state["selected_summary"])
+    analysis = extractor.analyze_concept_relationships(st.session_state["selected_summary"])
+    
+    # Display analysis in columns
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Main Concepts", analysis["total_main_concepts"])
+    with col2:
+        st.metric("Sub-Topics", analysis["total_subconcepts"])
+    with col3:
+        st.metric("Total Topics", analysis["total_main_concepts"] + analysis["total_subconcepts"])
+    
+    # Show complexity breakdown
+    st.write("**Concept Complexity Breakdown:**")
+    complexity_df = pd.DataFrame({
+        "Complexity": ["Simple", "Moderate", "Complex"],
+        "Count": [
+            analysis["concepts_by_complexity"]["simple"],
+            analysis["concepts_by_complexity"]["moderate"],
+            analysis["concepts_by_complexity"]["complex"]
+        ]
+    })
+    st.bar_chart(complexity_df.set_index("Complexity"))
+    
+    # Display topics in hierarchical order (DFS order)
+    st.write("**Topics (in DFS order):**")
+    for topic in topics:
+        difficulty = extractor.get_concept_difficulty(topic)
+        difficulty_emoji = "🟢" if difficulty == "Easy" else "🟡" if difficulty == "Medium" else "🔴"
+        
+        st.write(f"{difficulty_emoji} **{topic['main']}** ({difficulty})")
+        if topic['subtopics']:
+            for sub in topic['subtopics']:
+                st.write(f"   └─ {sub}")
     
     st.markdown("---")
     st.markdown("### Generate Quiz from Summary")
@@ -110,12 +155,29 @@ else:
                         st.session_state.show_explanation = False
                         st.rerun()
                 
-                # Next button
+                # Next button with A* recommendation
                 if current_idx < total_questions - 1:
                     # Only show next button if answer is submitted
                     if st.session_state.answer_submitted:
                         if nav_col3.button("Next →"):
-                            st.session_state.current_question_index += 1
+                            # Initialize recommender for A* algorithm
+                            recommender = QuizRecommender(quiz_data)
+                            
+                            # Convert answers to performance history (1.0 = correct, 0.0 = incorrect)
+                            performance_history = {}
+                            for q_idx, answer in st.session_state.user_answers.items():
+                                is_correct = (answer == quiz_data[q_idx]['correct_option']) if q_idx < len(quiz_data) else False
+                                performance_history[q_idx] = 1.0 if is_correct else 0.0
+                            
+                            # Get A* recommended next question
+                            answered_set = set(st.session_state.user_answers.keys())
+                            next_idx = recommender.a_star_next_question(
+                                current_idx,
+                                performance_history,
+                                answered_set
+                            )
+                            
+                            st.session_state.current_question_index = next_idx
                             st.session_state.answer_submitted = False
                             st.session_state.show_explanation = False
                             st.rerun()
@@ -136,6 +198,33 @@ else:
                         st.bar_chart(df)
                     else:
                         st.info("No answers to chart yet.")
+                    
+                    # Show performance analysis using A*
+                    st.markdown("---")
+                    st.markdown("### 📊 Performance Analysis (A* Optimized)")
+                    
+                    recommender = QuizRecommender(quiz_data)
+                    
+                    # Convert to performance history
+                    performance_history = {}
+                    for q_idx, answer in st.session_state.user_answers.items():
+                        is_correct = (answer == quiz_data[q_idx]['correct_option']) if q_idx < len(quiz_data) else False
+                        performance_history[q_idx] = 1.0 if is_correct else 0.0
+                    
+                    # Get performance summary
+                    perf_summary = recommender.get_performance_summary(performance_history)
+                    
+                    if perf_summary:
+                        st.write("**Performance by Topic:**")
+                        summary_df = pd.DataFrame(perf_summary).T
+                        st.dataframe(summary_df, use_container_width=True)
+                        
+                        # Get review recommendations
+                        review_topics = recommender.recommend_review_topics(performance_history)
+                        if review_topics:
+                            st.markdown("### 🔄 Recommended Topics to Review")
+                            for idx, topic in enumerate(review_topics, 1):
+                                st.write(f"{idx}. **{topic}**")
                     
                     # Reset quiz button
                     if st.button("Start Over"):
