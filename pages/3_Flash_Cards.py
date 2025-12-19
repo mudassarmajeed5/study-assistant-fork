@@ -115,15 +115,17 @@ else:
                         </div>
                         """, unsafe_allow_html=True)
                     
-                    # Control buttons
-                    col1, col2, col3 = st.columns([1, 1, 1])
-                    
-                    if not st.session_state.show_answer:
-                        if col2.button("Show Answer", key=f"show_{current_idx}"):
-                            st.session_state.show_answer = True
-                    else:
-                        if col2.button("Hide Answer", key=f"hide_{current_idx}"):
-                            st.session_state.show_answer = False
+                    # Control buttons - centered
+                    col1, col2, col3 = st.columns([2, 1, 2])
+                    with col2:
+                        if not st.session_state.show_answer:
+                            if st.button("Show Answer", key=f"show_{current_idx}", use_container_width=True):
+                                st.session_state.show_answer = True
+                                st.rerun()
+                        else:
+                            if st.button("Hide Answer", key=f"hide_{current_idx}", use_container_width=True):
+                                st.session_state.show_answer = False
+                                st.rerun()
 
                 # Navigation buttons
                 st.markdown("---")
@@ -134,6 +136,7 @@ else:
                     if nav_col1.button("← Previous Card"):
                         st.session_state.current_flashcard_index -= 1
                         st.session_state.show_answer = False
+                        st.rerun()
                 else:
                     nav_col1.empty()
                 
@@ -145,6 +148,7 @@ else:
                     if nav_col3.button("Next Card →"):
                         st.session_state.current_flashcard_index += 1
                         st.session_state.show_answer = False
+                        st.rerun()
                 else:
                     # Show completion message on last card
                     if nav_col3.button("🎉 Review Complete"):
@@ -153,6 +157,7 @@ else:
                         if st.button("Start Over"):
                             st.session_state.current_flashcard_index = 0
                             st.session_state.show_answer = False
+                            st.rerun()
                             
             else:
                 st.warning("No flash cards found in the generated data.")
