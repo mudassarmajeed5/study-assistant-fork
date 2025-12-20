@@ -1,5 +1,6 @@
 import json
 import streamlit as st
+import uuid
 from helpers.ai_models import generate_quiz
 import pandas as pd
 from helpers.ai_models import generate_flashcards
@@ -11,6 +12,10 @@ from helpers.naive_bayes import NaiveBayesClassifier
 st.set_page_config(page_title="Create Quiz - AI Study Assistant", page_icon="📝")
 
 init_db()
+
+# Initialize session ID
+if 'session_id' not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())[:8].upper()
 
 st.title("📝 Create Quiz")
 st.markdown("---")
@@ -173,7 +178,7 @@ else:
         # Save score to database (only once)
         summary_id = st.session_state.get("selected_summary_id")
         if summary_id and not st.session_state.quiz_saved:
-            save_quiz_score(summary_id, score, len(quiz_data))
+            save_quiz_score(summary_id, score, len(quiz_data), st.session_state.session_id)
             
             # Naive Bayes analysis with normalized topics
             classifier = NaiveBayesClassifier()
@@ -183,7 +188,7 @@ else:
                 topic = q.get("topic", f"question {i+1}").lower()
                 is_correct = st.session_state.quiz_performance[i] == 1.0
                 topic_results.append((topic, is_correct))
-                save_topic_performance(summary_id, topic, int(is_correct), 1)
+                save_topic_performance(summary_id, topic, int(is_correct), 1, st.session_state.session_id)
             
             classifier.train(topic_results)
             st.session_state.quiz_saved = True

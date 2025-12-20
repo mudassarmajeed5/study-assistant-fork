@@ -1,16 +1,20 @@
 import sqlite3
 from datetime import datetime
+from pathlib import Path
 
 DB_PATH = "database/summaries.db"
 
 def init_db():
+    # Ensure directory exists
+    Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS summaries
-                 (id INTEGER PRIMARY KEY, title TEXT, content TEXT, created_at TEXT)''')
+                 (id INTEGER PRIMARY KEY, session_id TEXT, title TEXT, content TEXT, created_at TEXT)''')
     
     c.execute('''CREATE TABLE IF NOT EXISTS quiz_scores
                  (id INTEGER PRIMARY KEY, 
+                  session_id TEXT,
                   summary_id INTEGER, 
                   score REAL,
                   total_questions INTEGER,
@@ -19,6 +23,7 @@ def init_db():
     
     c.execute('''CREATE TABLE IF NOT EXISTS topic_performance
                  (id INTEGER PRIMARY KEY,
+                  session_id TEXT,
                   summary_id INTEGER,
                   topic TEXT,
                   correct INTEGER,
@@ -29,18 +34,18 @@ def init_db():
     conn.commit()
     conn.close()
 
-def save_summary(title, content):
+def save_summary(title, content, session_id):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("INSERT INTO summaries (title, content, created_at) VALUES (?, ?, ?)",
-              (title, content, datetime.now().isoformat()))
+    c.execute("INSERT INTO summaries (session_id, title, content, created_at) VALUES (?, ?, ?, ?)",
+              (session_id, title, content, datetime.now().isoformat()))
     conn.commit()
     conn.close()
 
-def get_all_summaries():
+def get_all_summaries(session_id):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT id, title FROM summaries ORDER BY created_at DESC")
+    c.execute("SELECT id, title FROM summaries WHERE session_id = ? ORDER BY created_at DESC", (session_id,))
     summaries = c.fetchall()
     conn.close()
     return summaries
@@ -53,14 +58,14 @@ def get_summary_by_id(summary_id):
     conn.close()
     return result[0] if result else None
 
-def save_quiz_score(summary_id, score, total_questions):
+def save_quiz_score(summary_id, score, total_questions, session_id):
     """Save quiz score for a summary"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""INSERT INTO quiz_scores 
-                 (summary_id, score, total_questions, timestamp) 
-                 VALUES (?, ?, ?, ?)""",
-              (summary_id, score, total_questions, datetime.now().isoformat()))
+                 (session_id, summary_id, score, total_questions, timestamp) 
+                 VALUES (?, ?, ?, ?, ?)""",
+              (session_id, summary_id, score, total_questions, datetime.now().isoformat()))
     conn.commit()
     conn.close()
 
@@ -94,14 +99,14 @@ def get_summary_stats(summary_id):
         "best_score": stats[2] or 0
     } if stats else {"avg_score": 0, "attempts": 0, "best_score": 0}
 
-def save_topic_performance(summary_id, topic, correct, total):
+def save_topic_performance(summary_id, topic, correct, total, session_id):
     """Save performance for specific topic"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""INSERT INTO topic_performance 
-                 (summary_id, topic, correct, total, timestamp)
-                 VALUES (?, ?, ?, ?, ?)""",
-              (summary_id, topic, correct, total, datetime.now().isoformat()))
+                 (session_id, summary_id, topic, correct, total, timestamp)
+                 VALUES (?, ?, ?, ?, ?, ?)""",
+              (session_id, summary_id, topic, correct, total, datetime.now().isoformat()))
     conn.commit()
     conn.close()
 

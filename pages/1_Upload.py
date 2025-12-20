@@ -1,5 +1,6 @@
 import streamlit as st
 import re
+import uuid
 from PyPDF2 import PdfReader
 import markdown2
 from weasyprint import HTML
@@ -7,6 +8,10 @@ from helpers.ai_models import get_summary
 from helpers.db import save_summary, init_db
 
 init_db()
+
+# Initialize session ID
+if 'session_id' not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())[:8].upper()
 
 
 def extract_text_from_pdf(file):
@@ -66,7 +71,7 @@ else:
                 cleaned_summary = summary
                 
             st.session_state["summary"] = cleaned_summary
-            save_summary(file_name, cleaned_summary)
+            save_summary(file_name, cleaned_summary, st.session_state.session_id)
             st.success("Summary generated! Scroll down to view.")
 
 # Display selected summary if available

@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import uuid
 from helpers.db import (
     get_all_summaries, 
     get_summary_by_id, 
@@ -24,7 +25,15 @@ st.set_page_config(
 st.title("🎓 AI Study Assistant")
 st.markdown("---")
 
-summaries = get_all_summaries()
+# Session code management
+if 'session_id' not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())[:8].upper()
+
+st.sidebar.markdown("### 📌 Your Session Code")
+st.sidebar.code(st.session_state.session_id)
+st.sidebar.info("💡 Save this code to access your data later")
+
+summaries = get_all_summaries(st.session_state.session_id)
 
 if not summaries:
     st.info("📚 No saved summaries yet. Go to Upload and create one!")

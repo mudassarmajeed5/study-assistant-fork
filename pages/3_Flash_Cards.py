@@ -1,9 +1,14 @@
 import json
 import streamlit as st
+import uuid
 from helpers.ai_models import generate_flashcards
 
 # Configure page
 st.set_page_config(page_title="Flash Cards - AI Study Assistant", page_icon="🃏")
+
+# Initialize session ID
+if 'session_id' not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())[:8].upper()
 
 st.title("🃏 Flash Cards")
 st.markdown("---")
