@@ -119,11 +119,11 @@ else:
                     col1, col2, col3 = st.columns([2, 1, 2])
                     with col2:
                         if not st.session_state.show_answer:
-                            if st.button("Show Answer", key=f"show_{current_idx}", use_container_width=True):
+                            if st.button("Show Answer", key=f"show_{current_idx}", width='stretch'):
                                 st.session_state.show_answer = True
                                 st.rerun()
                         else:
-                            if st.button("Hide Answer", key=f"hide_{current_idx}", use_container_width=True):
+                            if st.button("Hide Answer", key=f"hide_{current_idx}", width='stretch'):
                                 st.session_state.show_answer = False
                                 st.rerun()
 

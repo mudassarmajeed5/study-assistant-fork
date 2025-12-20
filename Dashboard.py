@@ -102,13 +102,13 @@ else:
             hovermode='x unified',
             template='plotly_dark'
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         # Quiz history table
         st.markdown("### 📋 Quiz History")
         display_df = df[["Timestamp", "Score %", "Total Questions"]].copy()
         display_df.columns = ["Date", "Score %", "Questions"]
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
+        st.dataframe(display_df, width='stretch', hide_index=True)
     else:
         st.info("No quiz attempts yet for this summary.")
     
@@ -120,7 +120,7 @@ else:
         
         weak_df = pd.DataFrame(weak, columns=["Topic", "Accuracy %", "Questions"])
         weak_df["Accuracy %"] = (weak_df["Accuracy %"] * 100).round(1)
-        st.dataframe(weak_df, use_container_width=True, hide_index=True)
+        st.dataframe(weak_df, width='stretch', hide_index=True)
     
     st.markdown("---")
     st.markdown("### 🚀 Quick Actions")
@@ -128,19 +128,19 @@ else:
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        if st.button("📝 Create Quiz", use_container_width=True):
+        if st.button("📝 Create Quiz", width='stretch'):
             st.switch_page("pages/2_Create_Quiz.py")
     
     with col2:
-        if st.button("🃏 Flashcards", use_container_width=True):
+        if st.button("🃏 Flashcards", width='stretch'):
             st.switch_page("pages/3_Flash_Cards.py")
     
     with col3:
-        if st.button("📄 Upload PDF", use_container_width=True):
+        if st.button("📄 Upload PDF", width='stretch'):
             st.switch_page("pages/1_Upload.py")
     
     with col4:
-        if st.button("ℹ️ About", use_container_width=True):
+        if st.button("ℹ️ About", width='stretch'):
             st.switch_page("pages/5_About.py")
     
     st.markdown("---")

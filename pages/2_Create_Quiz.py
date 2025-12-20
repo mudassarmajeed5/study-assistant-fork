@@ -82,7 +82,7 @@ else:
     # Extract topics for Gemini constraint
     topics_for_quiz = [t["main"].lower() for t in topics]
     
-    if st.button("Create QUIZ", type="primary", use_container_width=True):
+    if st.button("Create QUIZ", type="primary", width='stretch'):
         with st.spinner("Generating quiz..."):
             quiz_text = generate_quiz(st.session_state["selected_summary"], topics_for_quiz)
             st.session_state["generated_quiz"] = quiz_text
@@ -134,13 +134,13 @@ else:
                 col1, col2, col3 = st.columns(3)
                 
                 with col1:
-                    if st.button("← Previous", use_container_width=True):
+                    if st.button("← Previous", width='stretch'):
                         if current_idx > 0:
                             st.session_state.current_question_index -= 1
                             st.rerun()
                 
                 with col2:
-                    if st.button("Submit Answer", type="primary", use_container_width=True):
+                    if st.button("Submit Answer", type="primary", width='stretch'):
                         st.session_state.user_answers[current_idx] = selected_answer
                         is_correct = selected_answer == current_question['options'][current_question['correct_option']]
                         st.session_state.quiz_performance.append(1.0 if is_correct else 0.0)
@@ -152,7 +152,7 @@ else:
                         st.rerun()
                 
                 with col3:
-                    if st.button("Skip →", use_container_width=True):
+                    if st.button("Skip →", width='stretch'):
                         if current_idx < len(quiz_data) - 1:
                             st.session_state.current_question_index += 1
                             st.rerun()
