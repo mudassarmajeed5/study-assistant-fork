@@ -3,19 +3,13 @@ from collections import defaultdict
 from typing import Dict, List, Tuple
 
 class ConceptExtractor:
-    """Uses DFS to build concept hierarchy from summary"""
     
     def __init__(self):
         self.concept_tree = defaultdict(list)
         self.visited_concepts = set()
     
     def dfs_extract_concepts(self, text: str) -> Dict[str, List[str]]:
-        """
-        DFS through text structure to extract nested concepts
-        Markdown headers indicate hierarchy level
-        
-        Returns: {main_concept: [subconcepts]}
-        """
+
         lines = text.split('\n')
         concepts = {}
         current_parent = None
@@ -57,10 +51,7 @@ class ConceptExtractor:
     
     def dfs_traverse_concepts(self, concepts: Dict[str, List[str]], 
                              parent: str = '', depth: int = 0) -> List[Tuple[str, int]]:
-        """
-        DFS traversal of concept tree
-        Returns ordered list of (concept, depth) tuples
-        """
+
         result = []
         visited = set()
         

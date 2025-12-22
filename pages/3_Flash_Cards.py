@@ -1,20 +1,14 @@
 import json
 import streamlit as st
-import uuid
 from helpers.ai_models import generate_flashcards
 
 # Configure page
 st.set_page_config(page_title="Flash Cards - AI Study Assistant", page_icon="🃏")
 
-# Initialize session ID
-if 'session_id' not in st.session_state:
-    st.session_state.session_id = str(uuid.uuid4())[:8].upper()
-
 st.title("🃏 Flash Cards")
 st.markdown("---")
 st.write("Create and review flash cards for effective memorization.")
 
-# Check if selected summary is available
 if "selected_summary" not in st.session_state:
     st.info("No summary available. Go to Home and select a summary from the list.")
 else:
@@ -55,7 +49,6 @@ else:
                 # Flash card container with rotation animation
                 card_container = st.container()
                 with card_container:
-                    # Add CSS for card rotation animation
                     st.markdown("""
                     <style>
                     .flashcard {
@@ -93,8 +86,7 @@ else:
                     }
                     </style>
                     """, unsafe_allow_html=True)
-                    
-                    # Create unique key for this card to maintain animation state
+              
                     flip_key = f"flip_card_{current_idx}"
                     
                     if not st.session_state.show_answer:

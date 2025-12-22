@@ -1,12 +1,7 @@
 import streamlit as st
-import uuid
 
 # Configure page
 st.set_page_config(page_title="About - AI Study Assistant", page_icon="ℹ️")
-
-# Initialize session ID
-if 'session_id' not in st.session_state:
-    st.session_state.session_id = str(uuid.uuid4())[:8].upper()
 
 st.title("ℹ️ About")
 st.markdown("---")

@@ -1,21 +1,15 @@
 import json
 import streamlit as st
-import uuid
 from helpers.ai_models import generate_quiz
 import pandas as pd
 from helpers.ai_models import generate_flashcards
 from helpers.concept_extractor import ConceptExtractor
 from helpers.difficulty_planner import DifficultyPlanner
-from helpers.db import save_quiz_score, save_topic_performance, init_db
-from helpers.naive_bayes import NaiveBayesClassifier
+from helpers.db import save_quiz_score, init_db
 
 st.set_page_config(page_title="Create Quiz - AI Study Assistant", page_icon="📝")
 
 init_db()
-
-# Initialize session ID
-if 'session_id' not in st.session_state:
-    st.session_state.session_id = str(uuid.uuid4())[:8].upper()
 
 st.title("📝 Create Quiz")
 st.markdown("---")
@@ -178,38 +172,8 @@ else:
         # Save score to database (only once)
         summary_id = st.session_state.get("selected_summary_id")
         if summary_id and not st.session_state.quiz_saved:
-            save_quiz_score(summary_id, score, len(quiz_data), st.session_state.session_id)
-            
-            # Naive Bayes analysis with normalized topics
-            classifier = NaiveBayesClassifier()
-            topic_results = []
-            
-            for i, q in enumerate(quiz_data):
-                topic = q.get("topic", f"question {i+1}").lower()
-                is_correct = st.session_state.quiz_performance[i] == 1.0
-                topic_results.append((topic, is_correct))
-                save_topic_performance(summary_id, topic, int(is_correct), 1, st.session_state.session_id)
-            
-            classifier.train(topic_results)
+            save_quiz_score(summary_id, score, len(quiz_data))
             st.session_state.quiz_saved = True
-        
-        # Display analysis
-        if st.session_state.quiz_saved:
-            classifier = NaiveBayesClassifier()
-            topic_results = [(q.get("topic", f"question {i+1}").lower(), st.session_state.quiz_performance[i] == 1.0) 
-                           for i, q in enumerate(quiz_data)]
-            classifier.train(topic_results)
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                weak = classifier.predict_weak_topics()
-                if weak:
-                    st.warning("🔴 **Topics to Review:**")
-                    for w in weak:
-                        st.write(f"- **{w['topic']}**: {w['accuracy']*100:.0f}% accuracy ({w['questions']} Q)")
-            
-            with col2:
-                st.info(f"📈 **Mastery Level:** {classifier.get_mastery_level()}")
         
         if st.button("Take Another Quiz"):
             st.session_state.show_results = False

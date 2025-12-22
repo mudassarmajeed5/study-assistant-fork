@@ -1,7 +1,7 @@
 from google import genai
 import sqlite3
 from pathlib import Path
-DB_PATH = Path("database/settings.db")
+DB_PATH = "database/summaries.db"
 def get_api_key():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.execute("SELECT value FROM config WHERE key = 'api_key'")

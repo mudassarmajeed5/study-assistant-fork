@@ -10,24 +10,13 @@ def init_db():
     c = conn.cursor()
     
     c.execute('''CREATE TABLE IF NOT EXISTS summaries
-                 (id INTEGER PRIMARY KEY, session_id TEXT, title TEXT, content TEXT, created_at TEXT)''')
+                 (id INTEGER PRIMARY KEY, title TEXT, content TEXT, created_at TEXT)''')
     
     c.execute('''CREATE TABLE IF NOT EXISTS quiz_scores
                  (id INTEGER PRIMARY KEY, 
-                  session_id TEXT,
                   summary_id INTEGER, 
                   score REAL,
                   total_questions INTEGER,
-                  timestamp TEXT,
-                  FOREIGN KEY(summary_id) REFERENCES summaries(id))''')
-    
-    c.execute('''CREATE TABLE IF NOT EXISTS topic_performance
-                 (id INTEGER PRIMARY KEY,
-                  session_id TEXT,
-                  summary_id INTEGER,
-                  topic TEXT,
-                  correct INTEGER,
-                  total INTEGER,
                   timestamp TEXT,
                   FOREIGN KEY(summary_id) REFERENCES summaries(id))''')
  
@@ -42,18 +31,18 @@ def init_db():
 
 
 
-def save_summary(title, content, session_id):
+def save_summary(title, content):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("INSERT INTO summaries (session_id, title, content, created_at) VALUES (?, ?, ?, ?)",
-              (session_id, title, content, datetime.now().isoformat()))
+    c.execute("INSERT INTO summaries (title, content, created_at) VALUES (?, ?, ?)",
+              (title, content, datetime.now().isoformat()))
     conn.commit()
     conn.close()
 
-def get_all_summaries(session_id):
+def get_all_summaries():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT id, title FROM summaries WHERE session_id = ? ORDER BY created_at DESC", (session_id,))
+    c.execute("SELECT id, title FROM summaries ORDER BY created_at DESC")
     summaries = c.fetchall()
     conn.close()
     return summaries
@@ -66,14 +55,14 @@ def get_summary_by_id(summary_id):
     conn.close()
     return result[0] if result else None
 
-def save_quiz_score(summary_id, score, total_questions, session_id):
+def save_quiz_score(summary_id, score, total_questions):
 
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""INSERT INTO quiz_scores 
-                 (session_id, summary_id, score, total_questions, timestamp) 
-                 VALUES (?, ?, ?, ?, ?)""",
-              (session_id, summary_id, score, total_questions, datetime.now().isoformat()))
+                 (summary_id, score, total_questions, timestamp) 
+                 VALUES (?, ?, ?, ?)""",
+              (summary_id, score, total_questions, datetime.now().isoformat()))
     conn.commit()
     conn.close()
 
@@ -106,39 +95,12 @@ def get_summary_stats(summary_id):
         "best_score": stats[2] or 0
     } if stats else {"avg_score": 0, "attempts": 0, "best_score": 0}
 
-def save_topic_performance(summary_id, topic, correct, total, session_id):
-
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("""INSERT INTO topic_performance 
-                 (session_id, summary_id, topic, correct, total, timestamp)
-                 VALUES (?, ?, ?, ?, ?, ?)""",
-              (session_id, summary_id, topic, correct, total, datetime.now().isoformat()))
-    conn.commit()
-    conn.close()
-
-def get_weak_topics(summary_id, threshold=0.7):
-    """Get topics with accuracy below threshold (aggregated across all quizzes)"""
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("""SELECT topic, 
-                 CAST(SUM(correct) AS FLOAT) / SUM(total) as accuracy,
-                 SUM(total) as total_questions
-                 FROM topic_performance
-                 WHERE summary_id = ?
-                 GROUP BY topic
-                 HAVING (CAST(SUM(correct) AS FLOAT) / SUM(total)) < ?
-                 ORDER BY accuracy ASC""", (summary_id, threshold))
-    weak_topics = c.fetchall()
-    conn.close()
-    return weak_topics
 
 def delete_summary(summary_id):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     
     c.execute("DELETE FROM quiz_scores WHERE summary_id = ?", (summary_id,))
-    c.execute("DELETE FROM topic_performance WHERE summary_id = ?", (summary_id,))
     c.execute("DELETE FROM summaries WHERE id = ?", (summary_id,))
     
     conn.commit()
