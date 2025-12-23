@@ -2,7 +2,6 @@ import json
 import streamlit as st
 from helpers.ai_models import generate_quiz
 import pandas as pd
-from helpers.ai_models import generate_flashcards
 from helpers.concept_extractor import ConceptExtractor
 from helpers.difficulty_planner import DifficultyPlanner
 from helpers.db import save_quiz_score, init_db
