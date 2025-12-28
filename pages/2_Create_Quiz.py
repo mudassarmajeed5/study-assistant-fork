@@ -72,17 +72,15 @@ else:
     st.markdown("---")
     st.markdown("### Generate Quiz from Summary")
     
-    # Extract topics for Gemini constraint
-    topics_for_quiz = [t["main"].lower() for t in topics]
-    
     if st.button("Create QUIZ", type="primary", width='stretch'):
         with st.spinner("Generating quiz..."):
-            quiz_text = generate_quiz(st.session_state["selected_summary"], topics_for_quiz)
+            quiz_text = generate_quiz(st.session_state["selected_summary"])
             st.session_state["generated_quiz"] = quiz_text
             st.session_state["current_question_index"] = 0
             st.session_state["user_answers"] = {}
             st.session_state["quiz_performance"] = []
             st.session_state["show_results"] = False
+            st.session_state["quiz_saved"] = False
         st.success("Quiz generated!")
 
     
@@ -178,5 +176,3 @@ else:
             st.session_state.user_answers = {}
             st.session_state.quiz_performance = []
             st.rerun()
-
-    

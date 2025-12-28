@@ -96,6 +96,7 @@ def get_summary_stats(summary_id):
     } if stats else {"avg_score": 0, "attempts": 0, "best_score": 0}
 
 
+
 def delete_summary(summary_id):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
