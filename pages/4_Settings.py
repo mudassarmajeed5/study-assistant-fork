@@ -1,5 +1,6 @@
 import streamlit as st
 from helpers.db import init_db
+import sqlite3
 
 st.set_page_config(page_title="Settings", page_icon="⚙️")
 
@@ -8,7 +9,6 @@ st.title("⚙️ Settings")
 # Initialize main database
 init_db()
 
-import sqlite3
 
 DB_PATH = "database/summaries.db"
 

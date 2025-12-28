@@ -176,6 +176,7 @@ else:
         # Download button
         summary_content = st.session_state.get("selected_summary")
         summary_title = st.session_state.get("selected_summary_title")
+        
         html_content = markdown2.markdown(summary_content)
         pdf_bytes = HTML(string=html_content).write_pdf()
         if pdf_bytes is not None:

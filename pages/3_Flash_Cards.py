@@ -55,6 +55,7 @@ else:
                         border: 2px solid #ddd;
                         border-radius: 10px;
                         padding: 2rem;
+                    
                         margin: 1rem 0;
                         min-height: 200px;
                         display: flex;

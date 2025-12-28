@@ -83,7 +83,7 @@ else:
             st.session_state["quiz_saved"] = False
         st.success("Quiz generated!")
 
-    
+
     # Initialize session state for quiz
     if "current_question_index" not in st.session_state:
         st.session_state.current_question_index = 0
@@ -111,9 +111,6 @@ else:
                 st.progress((current_idx + 1) / len(quiz_data))
                 st.subheader(f"Question {current_idx + 1}/{len(quiz_data)}")
                 
-                # Display topic (normalized to lowercase)
-                topic = current_question.get('topic', 'general').lower()
-                st.markdown(f"**📚 Topic:** {topic}")
                 st.write(current_question['question'])
                 
                 selected_answer = st.radio(
@@ -125,21 +122,32 @@ else:
                 col1, col2, col3 = st.columns(3)
                 
                 with col1:
-                    if st.button("← Previous", width='stretch'):
-                        if current_idx > 0:
+                    if current_idx > 0: 
+                        if(st.button("← Previous", width='stretch')):
                             st.session_state.current_question_index -= 1
                             st.rerun()
                 
                 with col2:
                     if st.button("Submit Answer", type="primary", width='stretch'):
+                        # Store the user's selected answer for this question
                         st.session_state.user_answers[current_idx] = selected_answer
-                        is_correct = selected_answer == current_question['options'][current_question['correct_option']]
+                        
+                        # Check if the selected answer matches the correct option
+                        # correct_option is "A", "B", "C", or "D"
+                        # options is a dict with keys "A", "B", "C", "D" mapping to answer strings
+                        is_correct = selected_answer == current_question['options']['B']
+                        
+                        # Record performance: 1.0 for correct, 0.0 for incorrect
                         st.session_state.quiz_performance.append(1.0 if is_correct else 0.0)
                         
+                        # Move to next question or show results if this was the last question
+                        # 4 (3)
                         if current_idx < len(quiz_data) - 1:
                             st.session_state.current_question_index += 1
                         else:
                             st.session_state.show_results = True
+                        
+                        # Rerun to update the UI
                         st.rerun()
                 
                 with col3:
@@ -157,7 +165,7 @@ else:
         
         st.markdown("---")
         st.markdown("### 📊 Quiz Results")
-        
+
         score = sum(st.session_state.quiz_performance) / len(st.session_state.quiz_performance)
         st.metric("Score", f"{score * 100:.1f}%")
         
